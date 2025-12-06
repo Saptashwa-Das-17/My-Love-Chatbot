@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>My Love Chatbot ❤️💕</title>
+<style>
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: url('{{ url_for("static", filename="background.png") }}') no-repeat center center fixed;
+    background-size: cover;
+    overflow: hidden;
+}
+
+.container {
+    width: 600px;
+    max-width: 95%;
+    background: rgba(255, 240, 248, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+h1 { margin: 0; text-align: center; color: #ff4d88; font-size: 28px; text-shadow: 1px 1px 3px #fff; }
+h3 { text-align:center; color:#ff4d88; margin:0; font-size:18px; }
+
+#messages { height: 320px; overflow-y: auto; padding: 15px; border-radius: 15px; background: rgba(255,255,255,0.8); display: flex; flex-direction: column; gap: 10px; }
+
+.message { max-width: 80%; padding: 10px 14px; border-radius: 20px; line-height: 1.4; word-wrap: break-word; animation: fadeIn 0.3s ease; font-size:16px; }
+.userMsg { background: #ffdee9; align-self: flex-end; color: #333; }
+.botMsg { background: #ffd1dc; align-self: flex-start; color: #333; }
+
+.controls { display: flex; gap: 10px; }
+input[type="text"] { flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #ffb6c1; outline: none; font-size: 16px; }
+button { padding: 12px 20px; border-radius: 25px; border: none; background: #ff4d88; color: #fff; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+button:hover { background: #ff1a6b; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.floating {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) scale(1); opacity:1; }
+    50% { transform: translateY(-150px) scale(1.2); opacity:0.8; }
+    100% { transform: translateY(-300px) scale(0.8); opacity:0; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>I Love You Mana ❤️💕</h1>
+   
+
+    <audio id="songPlayer" preload="metadata" loop>
+        <source src="{{ url_for('static', filename='Tum Ho Toh Saiyaara.mp3') }}" type="audio/mpeg">
+    </audio>
+
+    <div id="messages"></div>
+
+    <div class="controls">
+        <input id="userInput" type="text" placeholder="Type your message..." />
+        <button id="sendBtn">Send</button>
+    </div>
+</div>
+
+<script>
+const sendBtn = document.getElementById('sendBtn');
+const input = document.getElementById('userInput');
+const messages = document.getElementById('messages');
+const songPlayer = document.getElementById('songPlayer');
+const container = document.querySelector('.container');
+let firstMessageSent = false;
+
+// **Use proper static paths from Flask**
+const floatingImages = [
+    "{{ url_for('static', filename='teddy.png') }}",
+    "{{ url_for('static', filename='rose.png') }}",
+    "{{ url_for('static', filename='baloon.png') }}",
+    "{{ url_for('static', filename='heart1.png') }}"
+
+];
+
+function createFloatingItem() {
+    const item = document.createElement('div');
+    item.className = 'floating';
+    const img = floatingImages[Math.floor(Math.random() * floatingImages.length)];
+    item.style.backgroundImage = `url('${img}')`;
+    item.style.left = Math.random() * 550 + 'px';
+    item.style.animationDuration = (3 + Math.random()*4) + 's';
+    container.appendChild(item);
+    setTimeout(() => item.remove(), 5000);
+}
+
+// Create floating items every 800ms
+setInterval(createFloatingItem, 800);
+
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+
+async function sendMessage() {
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    if (!firstMessageSent) {
+        songPlayer.play().catch(e => console.log("Autoplay prevented:", e));
+        firstMessageSent = true;
+    }
+
+    appendMessage('You ❤️', msg + " 💕", 'userMsg');
+    input.value = '';
+
+    try {
+        const res = await fetch('/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg })
+        });
+        const data = await res.json();
+        appendMessage('Bot 💖', data.reply + " ❤️", 'botMsg');
+    } catch (err) {
+        appendMessage('Bot 💖', 'Sorry — unable to reach server. 💔', 'botMsg');
+    }
+}
+
+function appendMessage(who, text, cls) {
+    const p = document.createElement('div');
+    p.className = 'message ' + cls;
+    p.innerHTML = '<strong>' + who + '</strong>: ' + text;
+    messages.appendChild(p);
+    messages.scrollTop = messages.scrollHeight;
+}
+</script>
+</body>
+</html>
