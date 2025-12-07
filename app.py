@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, jsonify
 import openai
 
 # Load API key from environment variable (safe method)
-openai.api_key = os.environ.get("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")
+openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 app = Flask(__name__)
 
@@ -22,7 +22,10 @@ def chat():
         reply = response.choices[0].message.content
         return jsonify({"reply": reply})
     except Exception as e:
-        return jsonify({"reply": "Hi my love ❤️💕 I love you sooo much 😘💗. Sorry for my annoying nature sometimes… please don't be angry na meri jaan 🥺💞. I am all yours, my love — my whole heart and life is for you 💖. Love you my dear kuchu puchu 😘💗💗💗"})
+        return jsonify({"reply": "Hi my love ❤️💕 I love you sooo much 😘💗. "
+                                 "Sorry for my annoying nature sometimes… please don't be angry na meri jaan 🥺💞. "
+                                 "I am all yours, my love — my whole heart and life is for you 💖. "
+                                 "Love you my dear kuchu puchu 😘💗💗💗"})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
